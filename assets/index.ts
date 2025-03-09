@@ -54,6 +54,10 @@ import p_img50 from './p_img50.png'
 import p_img51 from './p_img51.png'
 import p_img52 from './p_img52.png'
 
+import add_icon from './add_icon.png'
+import order_icon from './order_icon.png'
+import upload_area from './upload_area.png'
+import parcel_icon from './parcel_icon.svg'
 
 import logo from './logo.png'
 import hero_img from './hero_img.png'
@@ -94,7 +98,11 @@ export {
     razorpay_logo,
     stripe_logo,
     cross_icon,
-    shipping_icon
+    shipping_icon,
+    add_icon,
+    order_icon,
+    upload_area,
+    parcel_icon
 }
 
 export const products = [
