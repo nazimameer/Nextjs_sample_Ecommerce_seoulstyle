@@ -1,6 +1,6 @@
-import { Navbar } from "./layout/Navbar";
-import { SearchBar } from "./layout/SearchBar";
-import { Footer } from "./layout/Footer";
+import { Navbar } from "./layout/user/Navbar";
+import { SearchBar } from "./layout/user/SearchBar";
+import { Footer } from "./layout/user/Footer";
 import { Hero } from "./user/Hero";
 import { Policy } from "./user/Policy";
 import { Subscription } from "./user/Subscription";
