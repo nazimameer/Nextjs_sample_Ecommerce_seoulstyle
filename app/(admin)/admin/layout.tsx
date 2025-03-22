@@ -1,5 +1,3 @@
-// import { Navbar } from "@/components/layout/admin";
-
 import "@/app/globals.css";
 import { Navbar, Sidebar } from "@/components/layout/admin";
 export const metadata = {
