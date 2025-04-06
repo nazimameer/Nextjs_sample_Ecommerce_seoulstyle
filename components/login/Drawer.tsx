@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/input-otp";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import {
   Drawer,
   DrawerClose,
@@ -27,6 +28,8 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
+import { verifyAuthOtp } from "@/lib/actions/auth/verify-user-login";
+import { sendAuthMail } from "@/lib/actions/auth/send-auth-mail";
 
 const FormSchema = z.object({
   pin: z.string().min(6, {
@@ -34,11 +37,18 @@ const FormSchema = z.object({
   }),
 });
 interface Props {
+  email: string;
   isOpenOtpDrawer: boolean;
   setIsOpenOtpDrawer: (open: boolean) => void;
 }
-export function OtpDrawer({ isOpenOtpDrawer, setIsOpenOtpDrawer }: Props) {
+export function OtpDrawer({
+  email,
+  isOpenOtpDrawer,
+  setIsOpenOtpDrawer,
+}: Props) {
+  const router = useRouter();
   const [resendTimer, setResendTimer] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -47,7 +57,7 @@ export function OtpDrawer({ isOpenOtpDrawer, setIsOpenOtpDrawer }: Props) {
   });
 
   const startResendTimer = () => {
-    setResendTimer(30);
+    setResendTimer(60);
     const interval = setInterval(() => {
       setResendTimer((prev) => {
         if (prev <= 1) {
@@ -65,7 +75,44 @@ export function OtpDrawer({ isOpenOtpDrawer, setIsOpenOtpDrawer }: Props) {
     }
   }, [isOpenOtpDrawer]);
 
-  const onSubmit = () => {};
+  const handleResendMail = async () => {
+    try {
+      const res = await sendAuthMail(email);
+
+      if (!res.success) {
+        setError(res.message || "Something went wrong");
+      }
+
+      startResendTimer();
+    } catch (err) {
+      console.log(`Error sending resend mail: ${err}`);
+      setError((err as Error).message);
+    }
+  };
+
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    try {
+      setError(null); // clear old error
+      const res = await verifyAuthOtp(email, Number(data.pin));
+      if (!res.success) {
+        setError(res.message);
+        return;
+      }
+
+      // Close drawer
+      setIsOpenOtpDrawer(false);
+
+      // Redirect based on role
+      if (res.role === "admin") {
+        router.push("/admin/add-item");
+      } else {
+        router.push("/");
+      }
+    } catch (err) {
+      console.log(`Error verify otp: ${err}`);
+      setError((err as Error).message);
+    }
+  };
   return (
     <Drawer open={isOpenOtpDrawer} onOpenChange={setIsOpenOtpDrawer}>
       <DrawerContent>
@@ -99,7 +146,7 @@ export function OtpDrawer({ isOpenOtpDrawer, setIsOpenOtpDrawer }: Props) {
                     </FormControl>
                     <FormDescription>
                       <button
-                        onClick={startResendTimer}
+                        onClick={handleResendMail}
                         disabled={resendTimer > 0}
                         type="button"
                         className={`font-medium ${
@@ -117,6 +164,9 @@ export function OtpDrawer({ isOpenOtpDrawer, setIsOpenOtpDrawer }: Props) {
                   </FormItem>
                 )}
               />
+              {error && (
+                <p className="text-center text-sm text-red-500">{error}</p>
+              )}
               <DrawerFooter>
                 <Button>Submit</Button>
                 <DrawerClose asChild>
