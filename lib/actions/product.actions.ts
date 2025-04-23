@@ -15,6 +15,7 @@ interface IParams {
   bestseller: boolean;
   path: string;
 }
+
 export async function addProduct({
   name,
   description,

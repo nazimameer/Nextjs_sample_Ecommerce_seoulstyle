@@ -1,6 +1,6 @@
 import mongoose, { Mongoose } from "mongoose";
-
-const MONGODB_URI = process.env.MONGODB_URI;
+import { env } from '@/data/env/server'
+const MONGODB_URI = env.MONGODB_URI;
 
 interface MongooseConnection {
   conn: Mongoose | null;
