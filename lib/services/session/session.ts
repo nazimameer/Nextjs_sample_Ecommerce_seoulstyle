@@ -10,6 +10,7 @@ import { DBSizeCommand } from "@upstash/redis";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { IAuthUser } from "./interface";
 
 const sessionSchema = z.object({
   id: z.number(),
@@ -77,7 +78,7 @@ async function getUserBySessionId(sessionId: string) {
 
   const { success, data: user } = sessionSchema.safeParse(rawUser);
 
-  success ? user : null;
+  return success ? user : null;
 }
 
 export interface IAddress {
@@ -149,14 +150,16 @@ async function _getCurrentUser({
         message: "User not found in database",
       };
     }
+
+    return fullUser;
   }
 
-  return null;
+  return user;
 }
 
 export const getCurrentUser = cache(_getCurrentUser);
 
-function getUserFromDb(id: string): Promise<IUserProjection | null> {
+function getUserFromDb(id: number): Promise<IUserProjection | null> {
   return User.findById(id, {
     id: 1,
     email: 1,
@@ -164,4 +167,33 @@ function getUserFromDb(id: string): Promise<IUserProjection | null> {
     role: 1,
     isDeleted: 1,
   });
+}
+
+export async function updateUserSessionData(
+  user: UserSession,
+  cookies: Pick<Cookies, "get">
+) {
+  const sessionId = cookies.get(COOKIE_SESSION_KEY)?.value;
+  if (!sessionId) return null;
+
+  await redisClient.set(`session:${sessionId}`, sessionSchema.parse(user), {
+    ex: SESSION_EXPIRATION_SECONDS,
+  });
+}
+
+export async function updateUserSessionExpiration(
+  cookies: Pick<Cookies, "get" | "set">
+) {
+  const sessionId = cookies.get(COOKIE_SESSION_KEY)?.value;
+  if (!sessionId) return null;
+
+  const user = await getUserBySessionId(sessionId);
+
+  if (user == null) return;
+
+  await redisClient.set(`session:${sessionId}`, sessionSchema.parse(user), {
+    ex: SESSION_EXPIRATION_SECONDS,
+  });
+
+  setCookie(sessionId, cookies)
 }

@@ -25,8 +25,6 @@ import {
   SubCategory,
   UploadImages,
 } from "@/components/admin";
-// import { useUploadThing } from "@/lib/uploadthing" 
-import { isBase64Image } from "@/lib/utils";
 
 export default function page() {
   const method = useForm({
@@ -52,13 +50,12 @@ export default function page() {
   const onSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); // Prevent page reload
 
-
     // const blob = selectedFiles;
 
     // const hasImageChanged = isBase64Image(blob);
 
     // if(hasImageChanged) {
-    //   const imgRes = 
+    //   const imgRes =
     // }
 
     // const formData = new FormData(event.currentTarget); // Get form data
